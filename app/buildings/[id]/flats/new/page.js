@@ -1,21 +1,20 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { ArrowLeft, Home } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
+import { ArrowLeft, Plus } from 'lucide-react'
 
 export default function NewFlat() {
   const router = useRouter()
   const params = useParams()
   const buildingId = params?.id
-
+  
   const [loading, setLoading] = useState(false)
-  const [building, setBuilding] = useState(null)
   const [formData, setFormData] = useState({
     unit_identifier: '',
     leaseholder_name: '',
@@ -23,24 +22,6 @@ export default function NewFlat() {
     lease_end_date: '',
     participating: true
   })
-
-  useEffect(() => {
-    if (buildingId) {
-      fetchBuilding()
-    }
-  }, [buildingId])
-
-  const fetchBuilding = async () => {
-    try {
-      const response = await fetch(`/api/buildings/${buildingId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setBuilding(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch building:', error)
-    }
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -56,20 +37,21 @@ export default function NewFlat() {
       if (response.ok) {
         router.push(`/buildings/${buildingId}`)
       } else {
-        alert('Failed to create flat')
+        alert('Failed to add flat')
       }
     } catch (error) {
-      console.error('Error creating flat:', error)
-      alert('Failed to create flat')
+      console.error('Error adding flat:', error)
+      alert('Failed to add flat')
     } finally {
       setLoading(false)
     }
   }
 
   const handleChange = (e) => {
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     })
   }
 
@@ -88,51 +70,51 @@ export default function NewFlat() {
         <Card className="border-slate-200 shadow-lg">
           <CardHeader className="bg-gradient-to-r from-blue-900 to-blue-800 text-white">
             <div className="flex items-center gap-3">
-              <Home className="h-8 w-8" />
+              <Plus className="h-8 w-8" />
               <div>
                 <CardTitle className="text-2xl">Add New Flat</CardTitle>
                 <CardDescription className="text-blue-100">
-                  {building?.address || 'Loading...'}
+                  Enter leaseholder and lease details
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="unit_identifier" className="text-slate-900 font-medium">
-                  Unit Identifier *
-                </Label>
-                <Input
-                  id="unit_identifier"
-                  name="unit_identifier"
-                  value={formData.unit_identifier}
-                  onChange={handleChange}
-                  required
-                  className="border-slate-300"
-                  placeholder="e.g., Flat 1, Ground Floor, Apartment A"
-                />
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="unit_identifier" className="text-slate-900 font-medium">
+                    Unit Identifier *
+                  </Label>
+                  <Input
+                    id="unit_identifier"
+                    name="unit_identifier"
+                    value={formData.unit_identifier}
+                    onChange={handleChange}
+                    required
+                    className="border-slate-300"
+                    placeholder="e.g., Flat 1, Ground Floor"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="leaseholder_name" className="text-slate-900 font-medium">
-                  Leaseholder Name *
-                </Label>
-                <Input
-                  id="leaseholder_name"
-                  name="leaseholder_name"
-                  value={formData.leaseholder_name}
-                  onChange={handleChange}
-                  required
-                  className="border-slate-300"
-                  placeholder="e.g., John Smith"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="leaseholder_name" className="text-slate-900 font-medium">
+                    Leaseholder Name
+                  </Label>
+                  <Input
+                    id="leaseholder_name"
+                    name="leaseholder_name"
+                    value={formData.leaseholder_name}
+                    onChange={handleChange}
+                    className="border-slate-300"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="lease_start_date" className="text-slate-900 font-medium">
-                    Lease Start Date *
+                    Lease Start Date
                   </Label>
                   <Input
                     id="lease_start_date"
@@ -140,7 +122,6 @@ export default function NewFlat() {
                     type="date"
                     value={formData.lease_start_date}
                     onChange={handleChange}
-                    required
                     className="border-slate-300"
                   />
                 </div>
@@ -161,20 +142,18 @@ export default function NewFlat() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg bg-slate-50">
-                <div>
-                  <Label htmlFor="participating" className="text-slate-900 font-medium">
-                    Participating in Enfranchisement
-                  </Label>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Is this leaseholder participating in the collective enfranchisement?
-                  </p>
-                </div>
-                <Switch
+              <div className="flex items-center space-x-2 py-2">
+                <input
+                  type="checkbox"
                   id="participating"
+                  name="participating"
                   checked={formData.participating}
-                  onCheckedChange={(checked) => setFormData({ ...formData, participating: checked })}
+                  onChange={handleChange}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-900 focus:ring-blue-900"
                 />
+                <Label htmlFor="participating" className="text-slate-900 font-medium">
+                  Participating in Enfranchisement
+                </Label>
               </div>
 
               <div className="flex gap-4 pt-6">

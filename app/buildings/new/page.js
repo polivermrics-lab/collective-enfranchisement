@@ -150,6 +150,7 @@ export default function NewBuilding() {
 
               <div className="border-t border-slate-200 pt-6 mt-6">
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Freeholder Details</h3>
+                
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="freeholder_name" className="text-slate-900 font-medium">
