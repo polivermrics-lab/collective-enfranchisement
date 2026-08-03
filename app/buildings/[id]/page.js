@@ -72,6 +72,7 @@ export default function BuildingDetail() {
         const buildingData = await buildingRes.json()
         setBuilding(buildingData)
         
+        // Pre-fill Element C form
         if (buildingData) {
           setElementCForm({
             retained_property_description: buildingData.retained_property_description || '',
@@ -147,7 +148,7 @@ export default function BuildingDetail() {
             ? { ...f, individual_premium: result.premium }
             : f
         ))
-        fetchAllData()
+        fetchAllData() // Refresh apportionment
       } else {
         alert('Failed to compute premium')
       }
@@ -371,6 +372,7 @@ export default function BuildingDetail() {
               <CardContent>
                 {building.eligibility_result && (
                   <div className="space-y-6">
+                    {/* Eligibility Tests */}
                     <div className="space-y-4">
                       {building.eligibility_result.reasons?.map((reason, idx) => (
                         <Alert key={idx} className={
@@ -399,6 +401,7 @@ export default function BuildingDetail() {
                     
                     <Separator />
                     
+                    {/* Threshold Basis */}
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                       <h3 className="font-semibold text-blue-900 mb-2">Threshold Basis</h3>
                       <div className="space-y-1 text-sm text-slate-700">
@@ -409,6 +412,7 @@ export default function BuildingDetail() {
                       </div>
                     </div>
                     
+                    {/* Marriage Value Disclosure */}
                     <Alert className="border-amber-300 bg-amber-50">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       <AlertTitle>Marriage Value Notice</AlertTitle>
@@ -583,6 +587,7 @@ export default function BuildingDetail() {
               <CardContent>
                 {apportionment ? (
                   <div className="space-y-6">
+                    {/* Summary */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card className="bg-slate-50">
                         <CardContent className="pt-6">
@@ -610,6 +615,7 @@ export default function BuildingDetail() {
                       </Card>
                     </div>
                     
+                    {/* Per-Flat Breakdown */}
                     <div>
                       <h3 className="text-lg font-semibold text-slate-900 mb-4">Per-Flat Apportionment</h3>
                       <div className="space-y-3">
@@ -648,6 +654,7 @@ export default function BuildingDetail() {
                       </div>
                     </div>
                     
+                    {/* Sum Check */}
                     <Alert className={apportionment.apportionment.sum_check.passes ? 'border-green-300 bg-green-50' : 'border-red-300 bg-red-50'}>
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertTitle>Sum Check Validation</AlertTitle>
@@ -779,56 +786,82 @@ export default function BuildingDetail() {
               <CardContent>
                 {building.element_c_result ? (
                   <div className="space-y-6">
+                    {/* Element C Value */}
                     <Card className="bg-blue-50 border-blue-300">
                       <CardContent className="pt-6">
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-sm text-blue-700 mb-1">Element C Value</p>
-                            <p className="text-3xl font-bold text-blue-900">
+                            <p className="text-sm text-blue-700 font-semibold mb-1">Calculated Element C</p>
+                            <p className="text-4xl font-bold text-blue-900">
                               £{building.element_c_result.value.toLocaleString('en-GB', { minimumFractionDigits: 2 })}
                             </p>
                           </div>
-                          {building.element_c_result.requiresDisclosure && (
-                            <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-                              Surveyor Override
+                          <div className="text-right">
+                            <Badge className="bg-blue-900 text-white uppercase text-xs font-bold px-3 py-1">
+                              Mode: {building.element_c_result.mode}
                             </Badge>
-                          )}
+                          </div>
                         </div>
+                        {building.element_c_result.surveyorReviewRequired && (
+                          <Alert variant="destructive" className="mt-4 py-2">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription className="text-xs font-medium">
+                              Attention: The retained property increased in value (Before < After). Element C floored at £0.
+                            </AlertDescription>
+                          </Alert>
+                        )}
                       </CardContent>
                     </Card>
                     
-                    <Alert className="border-slate-300">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertTitle>Calculation Details</AlertTitle>
-                      <AlertDescription>
-                        <div className="space-y-2 text-sm mt-2">
-                          <p><span className="font-medium">Mode:</span> {building.element_c_result.calculationDetails.mode}</p>
-                          <p><span className="font-medium">Message:</span> {building.element_c_result.calculationDetails.message}</p>
-                          
-                          {building.element_c_result.calculationDetails.mode === 'AUTO' && building.element_c_result.calculationDetails.valueBefore && (
-                            <>
-                              <p><span className="font-medium">Value Before:</span> £{building.element_c_result.calculationDetails.valueBefore.toLocaleString('en-GB')}</p>
-                              <p><span className="font-medium">Value After:</span> £{building.element_c_result.calculationDetails.valueAfter.toLocaleString('en-GB')}</p>
-                              <p><span className="font-medium">Formula:</span> {building.element_c_result.calculationDetails.formula}</p>
-                            </>
-                          )}
-                          
-                          {building.element_c_result.calculationDetails.justification && (
-                            <p><span className="font-medium">Justification:</span> {building.element_c_result.calculationDetails.justification}</p>
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-slate-900">Retained Property</h4>
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                          <p className="text-sm text-slate-600 font-medium mb-1">Description</p>
+                          <p className="text-slate-900 italic">"{building.retained_property_description || 'No description provided'}"</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500 mb-1">Value Before</p>
+                            <p className="text-lg font-bold text-slate-900">
+                              £{building.retained_property_value_before?.toLocaleString('en-GB') || '-'}
+                            </p>
+                          </div>
+                          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
+                            <p className="text-xs text-slate-500 mb-1">Value After</p>
+                            <p className="text-lg font-bold text-slate-900">
+                              £{building.retained_property_value_after?.toLocaleString('en-GB') || '-'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h4 className="font-semibold text-slate-900">Surveyor Override</h4>
+                        <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 h-full">
+                          {building.element_c_override === 'AUTO' ? (
+                            <p className="text-slate-500 italic text-sm py-4">No override applied. Using formula: (Before - After)</p>
+                          ) : (
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-xs text-slate-500">Applied Override</p>
+                                <p className="text-lg font-bold text-amber-700 uppercase">
+                                  {building.element_c_override.replace('_', ' ')}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-slate-500">Justification</p>
+                                <p className="text-sm text-slate-700">{building.element_c_override_justification}</p>
+                              </div>
+                            </div>
                           )}
                         </div>
-                      </AlertDescription>
-                    </Alert>
-                    
-                    {building.element_c_result.retainedPropertyDescription && (
-                      <div>
-                        <p className="text-sm text-slate-600 mb-1">Retained Property Description</p>
-                        <p className="text-slate-900">{building.element_c_result.retainedPropertyDescription}</p>
                       </div>
-                    )}
+                    </div>
                   </div>
                 ) : (
-                  <p className="text-slate-500 italic text-center py-8">No Element C data configured</p>
+                  <p className="text-slate-500 italic text-center py-8">No Element C result available.</p>
                 )}
               </CardContent>
             </Card>
@@ -841,166 +874,123 @@ export default function BuildingDetail() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Section 13 Notice Tracker</CardTitle>
-                    <CardDescription>Notice stage progression and audit trail</CardDescription>
+                    <CardDescription>Track enfranchisement milestone dates and statutory stages</CardDescription>
                   </div>
-                  {!notice && (
-                    <Dialog open={noticeDialogOpen} onOpenChange={setNoticeDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="bg-blue-900 hover:bg-blue-800">
-                          <Plus className="mr-2 h-4 w-4" />
-                          Create Notice Record
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Create Notice Record</DialogTitle>
-                          <DialogDescription>
-                            Initialize Section 13 notice tracking
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>Initial Stage</Label>
-                            <Select
-                              value={noticeForm.stage}
-                              onValueChange={(value) => setNoticeForm({ ...noticeForm, stage: value })}
-                            >
-                              <SelectTrigger>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Draft">Draft</SelectItem>
-                                <SelectItem value="Notice Served (s.13)">Notice Served (s.13)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Notes</Label>
-                            <Textarea
-                              value={noticeForm.notes}
-                              onChange={(e) => setNoticeForm({ ...noticeForm, notes: e.target.value })}
-                              placeholder="Initial notes"
-                            />
-                          </div>
+                  <Dialog open={noticeDialogOpen} onOpenChange={setNoticeDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button className="bg-blue-900 hover:bg-blue-800">
+                        {notice ? 'Update Stage' : 'Initialize Tracker'}
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Update Notice Progression</DialogTitle>
+                        <DialogDescription>
+                          Transition the case to a new statutory stage
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Target Stage</Label>
+                          <Select
+                            value={noticeForm.stage}
+                            onValueChange={(value) => setNoticeForm({ ...noticeForm, stage: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Draft">Draft</SelectItem>
+                              <SelectItem value="Notice Served (s.13)">Notice Served (s.13)</SelectItem>
+                              <SelectItem value="Landlord Counter-Notice Received (s.21)">Counter-Notice (s.21)</SelectItem>
+                              <SelectItem value="Terms Agreed">Terms Agreed</SelectItem>
+                              <SelectItem value="Tribunal Referral">Tribunal Referral</SelectItem>
+                              <SelectItem value="Completion">Completion</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setNoticeDialogOpen(false)}>
-                            Cancel
-                          </Button>
-                          <Button onClick={createNotice} className="bg-blue-900 hover:bg-blue-800">
-                            Create
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  )}
+                        <div className="space-y-2">
+                          <Label>Surveyor Notes</Label>
+                          <Textarea
+                            value={noticeForm.notes}
+                            onChange={(e) => setNoticeForm({ ...noticeForm, notes: e.target.value })}
+                            placeholder="e.g., Notice served by hand today"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button onClick={createNotice} className="bg-blue-900 hover:bg-blue-800">
+                          Confirm Stage Change
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </CardHeader>
               <CardContent>
                 {notice ? (
-                  <div className="space-y-6">
-                    <Card className="bg-blue-50 border-blue-300">
-                      <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-blue-700 mb-1">Current Stage</p>
-                            <p className="text-2xl font-bold text-blue-900">{notice.stage}</p>
-                          </div>
-                          <FileText className="h-10 w-10 text-blue-900" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Stage History</h3>
-                      <div className="space-y-3">
-                        {notice.stage_history?.map((entry, idx) => (
-                          <Card key={idx} className="border-slate-300">
-                            <CardContent className="pt-4">
-                              <div className="flex items-start gap-3">
-                                <div className="mt-1">
-                                  <div className="h-8 w-8 rounded-full bg-blue-900 flex items-center justify-center text-white font-bold">
-                                    {idx + 1}
-                                  </div>
-                                </div>
-                                <div className="flex-1">
-                                  <p className="font-semibold text-slate-900">{entry.stage}</p>
-                                  <p className="text-sm text-slate-600">{new Date(entry.date).toLocaleString()}</p>
-                                  <p className="text-sm text-slate-600 mt-1">{entry.notes}</p>
-                                  <p className="text-xs text-slate-500 mt-1">User: {entry.user}</p>
-                                  {entry.warnings && entry.warnings.length > 0 && (
-                                    <Alert className="mt-2 border-amber-300 bg-amber-50">
-                                      <AlertTriangle className="h-3 w-3" />
-                                      <AlertDescription className="text-xs">
-                                        {entry.warnings.map((w, widx) => (
-                                          <p key={widx}>{w.message}</p>
-                                        ))}
-                                      </AlertDescription>
-                                    </Alert>
-                                  )}
-                                </div>
+                  <div className="space-y-8">
+                    {/* Tracker Visualization */}
+                    <div className="relative">
+                      <div className="absolute left-0 top-5 w-full h-0.5 bg-slate-100 -z-10" />
+                      <div className="flex justify-between">
+                        {['Draft', 'Notice Served (s.13)', 'Landlord Counter-Notice Received (s.21)', 'Terms Agreed', 'Completion'].map((stage, idx) => {
+                          const isCurrent = notice.stage === stage
+                          const currentIndex = getStageIndex(notice.stage)
+                          const stageIndex = getStageIndex(stage)
+                          const isPast = stageIndex < currentIndex
+                          
+                          return (
+                            <div key={idx} className="flex flex-col items-center">
+                              <div className={`h-10 w-10 rounded-full border-4 flex items-center justify-center bg-white ${ 
+                                isCurrent ? 'border-blue-900 text-blue-900' : 
+                                isPast ? 'border-green-500 bg-green-50 text-green-500' :
+                                'border-slate-100 text-slate-300'
+                              }`}>
+                                {isPast ? <CheckCircle2 className="h-6 w-6" /> : <span>{idx + 1}</span>}
                               </div>
-                            </CardContent>
-                          </Card>
+                              <p className={`mt-2 text-xs font-bold text-center max-w-[80px] ${
+                                isCurrent ? 'text-blue-900' : isPast ? 'text-green-700' : 'text-slate-400'
+                              }`}>
+                                {stage.replace(' Received', '').replace(' (s.13)', '').replace(' (s.21)', '')}
+                              </p>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Progress History */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-slate-900">Stage History</h4>
+                      <div className="space-y-3">
+                        {notice.stage_history?.slice().reverse().map((entry, idx) => (
+                          <div key={idx} className="flex items-start gap-4 p-4 bg-white border border-slate-200 rounded-lg">
+                            <div className="h-2 w-2 rounded-full bg-blue-900 mt-2" />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <p className="font-bold text-slate-900">{entry.stage}</p>
+                                <p className="text-xs text-slate-500">{new Date(entry.date).toLocaleString('en-GB')}</p>
+                              </div>
+                              <p className="text-sm text-slate-600 mt-1">{entry.notes}</p>
+                              {entry.warnings?.length > 0 && (
+                                <div className="mt-2 flex gap-2">
+                                  {entry.warnings.map((w, wIdx) => (
+                                    <Badge key={wIdx} variant="outline" className="text-[10px] text-amber-700 border-amber-200 bg-amber-50 uppercase">
+                                      {w.type.replace('_', ' ')}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-4">Key Dates</h3>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {notice.notice_served_date && (
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <p className="text-xs text-slate-600">Notice Served</p>
-                            <p className="font-semibold text-slate-900">{notice.notice_served_date}</p>
-                          </div>
-                        )}
-                        {notice.counter_notice_received_date && (
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <p className="text-xs text-slate-600">Counter-Notice Received</p>
-                            <p className="font-semibold text-slate-900">{notice.counter_notice_received_date}</p>
-                          </div>
-                        )}
-                        {notice.terms_agreed_date && (
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <p className="text-xs text-slate-600">Terms Agreed</p>
-                            <p className="font-semibold text-slate-900">{notice.terms_agreed_date}</p>
-                          </div>
-                        )}
-                        {notice.tribunal_referral_date && (
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <p className="text-xs text-slate-600">Tribunal Referral</p>
-                            <p className="font-semibold text-slate-900">{notice.tribunal_referral_date}</p>
-                          </div>
-                        )}
-                        {notice.completion_date && (
-                          <div className="bg-slate-50 p-3 rounded-lg">
-                            <p className="text-xs text-slate-600">Completion</p>
-                            <p className="font-semibold text-slate-900">{notice.completion_date}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {notice.document_references && notice.document_references.length > 0 && (
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-4">Documents</h3>
-                        <div className="space-y-2">
-                          {notice.document_references.map((doc, idx) => (
-                            <div key={idx} className="flex items-center gap-2 p-2 bg-slate-50 rounded">
-                              <FileText className="h-4 w-4 text-slate-600" />
-                              <span className="text-sm text-slate-700">{doc}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
-                    <FileText className="h-16 w-16 text-slate-300 mx-auto mb-4" />
-                    <p className="text-slate-500 mb-4">No notice record created yet</p>
-                    <p className="text-sm text-slate-400">Create a notice record to start tracking the Section 13 process</p>
+                  <div className="text-center py-8 text-slate-500 italic">
+                    <p>No notice record initialized</p>
                   </div>
                 )}
               </CardContent>
